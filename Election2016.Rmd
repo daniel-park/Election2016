@@ -1,5 +1,5 @@
 ---
-title: "Election Data"
+title: "2016 US Elections"
 date: "`r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`"
 output: 
   html_document:
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE, fig.width=8)
 setwd("~/Dropbox/DataScience/Projects/Election2016")
 ```
 
-The `pollstR` package.
+The data in this report (unless otherwise noted) comes from using the `pollstR` package.  It allows for direct access to the *HuffPost Pollster* API using `R`.  The code appears on [Github](https://github.com/daniel-park/Election2016).
 
 
 ```{r init}
@@ -28,7 +28,7 @@ charts <- pollster_charts(page=1) # is this necessary?
 
 ```
 
-###National Polling Average on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`
+###National Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`
 ```{r US_table}
 library(pollstR)
 # Chart name for various national polls.
@@ -38,70 +38,27 @@ slug <- "2016-general-election-trump-vs-clinton-vs-johnson"
 
 source("Election2016_EstTable.R")
 
-# Cannot source `datatable()` from an R script.
-DT::datatable(data=est.today,
-              options=list(dom="t"),
-              caption = htmltools::tags$caption(
-                style = 'caption-side: bottom; text-align: left;',
-                htmltools::em("Source: HuffPost Pollster"))
-)
+
+candidate.DT
 ```
 
-## Polls {.tabset}
+## National Polling Data {.tabset .tabset-fade .tabset-pills}
 
-### National Polls
+### National Polls  
 
+National support for the two main US presidential candidates according to polls conducted by various polling organizations.
 ```{r US_polls}
 source("Election2016_Polls.R")
-
-library(plotly)
-# Polling data
-plot_ly(data=all.polls.long, 
-        x=med_date, 
-        y=value, 
-        mode="markers", 
-        marker=list(color=choice_color),
-        hoverinfo="text",
-        text=hover_info,
-        color=choice) %>% 
-  #colors=c("red", "blue")
-  layout(title="National Polls", 
-         annotations=plot.labels,
-         shapes=list(vert.line),
-         xaxis=list(title="Date", tickangle=-45, rangeslider=list(type="date")),
-         yaxis=list(title="", ticksuffix="%"))
+polls.plotly
 ```
 
-### National Estimates
+### National Estimates  
+
+The line represents *HuffPost Pollster's* estimate for overall support.
+
 ```{r US_est}
-source("Election2016_Est.R")
-
-
-# Overlay estimates with polling data
-plot_ly(data=est.daily.top2,
-        x=date,
-        y=value,
-        #line=list(color=choice_color),
-        mode="lines + markers + text",
-        color=choice,
-        colors=c("red", "blue"),
-        showlegend=FALSE) %>%
-  add_trace(data=all.polls.long, 
-            x=med_date, 
-            y=value, 
-            marker=list(color=choice_color),
-            mode="markers", 
-            hoverinfo="none",
-            color=choice 
-            #colors=c("red", "blue")
-  ) %>%
-  layout(title="National Polls and Average", 
-         annotations=plot.labels,
-         shapes=list(vert.line),
-         xaxis=list(title="Date", tickangle=-45, rangeslider=list(type="date")),
-         yaxis=list(title="", ticksuffix="%"))
-               
-
+# Comes from `Election2016_Polls.R` script.
+est.plotly 
 ```
 
 ```{r eval=FALSE, echo=FALSE}
@@ -147,7 +104,7 @@ plot_ly(data=est.daily.top2,
             color=choice,
             colors=c("red", "blue"),
         showlegend=FALSE) %>%
-  layout(title="National Polling Average", 
+  layout(title="National Polling Overall Estimates", 
          annotations=plot.labels,
          shapes=list(vert.line),
          xaxis=list(title="Date", 
@@ -160,132 +117,29 @@ plot_ly(data=est.daily.top2,
 
 ```
 
-## Electoral Map
-```{r ElectoralMap, eval=FALSE}
-#data(state)
+## Electoral Map  
 
+This is the current electoral map according to estimates by *HuffPost Pollster*.  Estimates are made for states with sufficient polling data.
 
+```{r ElectoralMap}
 
-map.df <- data.frame(state=state.abb, 
-                     name=state.name, 
-                     clinton_value=numeric(50),
-                     trump_value=numeric(50),
-                     leader=character(50), 
-                     lead=numeric(50),
-                     stringsAsFactors=FALSE)
-
-
-# slugs for states that have polling data
-state.slug.df <- filter(charts$charts, topic=="2016-president") %>%
-  filter(state!="US") %>%
-  select(slug, state)
-
-map.df <- merge(map.df, state.slug.df, by="state", all=TRUE)
-
-map.df$slug <- ifelse(test=is.na(map.df$slug), 
-                      yes="",
-                      no=map.df$slug)
-
-
-# for every row in `map.df`
-for (i in 1:nrow(map.df)) {
-  
-  # if there exists estimates for that state
-  if (any(map.df$slug[i]==state.slug.df$slug, na.rm=TRUE)) {
-    
-    tryCatch({
-      
-    # extract the data for that state
-    state.est.today <- pollster_chart(map.df$slug[i])$estimates # today's estimates
-    
-    # take today's estimated voter support for each candidate
-    # record in `map.df`
-    map.df$clinton_value[i] <- filter(state.est.today, choice=="Clinton")$value
-    map.df$trump_value[i] <- filter(state.est.today, choice=="Trump")$value
-    
-    # take the candidate leading the state (always first entry)
-    # record candidate's name in `map.df`
-    map.df$leader[i] <- state.est.today$choice[1]
-    
-    # take difference between voter support for both candidates
-    # record difference in `map.df`
-    map.df$lead[i]   <- state.est.today$value[1] - state.est.today$value[2]
-    }, error=function(e) {
-      
-      #cat("\n", "Error related to slug", map.df$slug[i],
-      #    ":",conditionMessage(e), "\n")
-      }
-    )
-  }
-}
-
-
-
-# MAP
-
-# add column for hover labels on map
-map.df <- mutate(map.df, hover=paste(state, "<br>", "Clinton", clinton_value, "<br>",
-                                      "Trump", trump_value))
-
-# Need to superimpose two maps, so separate data
-clinton.map.df <- filter(map.df, leader=="Clinton")
-trump.map.df <- filter(map.df, leader=="Trump")
-
-g <- list(
-  scope = 'usa',
-  projection = list(type = 'albers usa'),
-  showlakes = TRUE,
-  lakecolor = toRGB('white')
-)
-
-
-election.map <- plot_ly(data=clinton.map.df, 
-                        z = lead, 
-                        text = hover, 
-                        hoverinfo="text",
-                        locations=state,
-                        type = 'choropleth',
-                        locationmode = 'USA-states', 
-                        color = lead, 
-                        colors = 'Blues', 
-                        showscale=FALSE) %>%
-  add_trace(data=trump.map.df, 
-            z = lead,
-            text=hover,
-            hoverinfo="text",
-            locations=state,
-            type='choropleth',
-            locationmode='USA-states',
-            color=lead, 
-            colors='Reds', 
-            showscale=FALSE) %>%
-  layout(title="Electoral Map",
-         geo=g)
+source("Election2016_ElectoralMap.R")
 
 election.map
-
 ```
 
 
 
 
-## Campaign Stops {.tabset}
+## Campaign Stops {.tabset .tabset-fade .tabset-pills}
 
-The following maps track campaign stops. The data begins on July 31, 2016 - 100 days until the Election Day.  
+The following maps track campaign stops. The data begins on July 31, 2016 (100 days until the Election Day).  
 
-### By Candidate
+```{r echo=FALSE, eval=FALSE}
+# doubt I will use
 
-```{r eval=FALSE}
 # Schedule MAP
-source("Election2016_ScheduleScrape.R")
 
-library(leaflet)
-
-
-repub.icon <- makeIcon(iconUrl="https://upload.wikimedia.org/wikipedia/commons/9/9b/Republicanlogo.svg",
-                       iconWidth = 25, iconHeight = 25)
-dem.icon <- makeIcon(iconUrl="http://www.standupamericaus.org/sua/wp-content/uploads/2012/05/Democrat-Logo-psd355111.png", 
-                     iconWidth = 25, iconHeight = 25)
 
 leaflet() %>%
   addTiles() %>%
@@ -316,9 +170,21 @@ leaflet() %>%
 
 ```
 
-### By Day
+### Today
 
-```{r eval=FALSE}
+```{r tour_today}
+source("Election2016_ScheduleScrape.R")
+source("Election2016_TourSchedule.R")
+
+map.today
+```
+
+
+
+
+```{r echo=FALSE, eval=FALSE}
+# probably won't use
+
 # Partitioning campaign stops by day, week, and all
 # Some days, no candidate makes a campaign stop
 # In that case, feeding plotly an empty data set causes an error
@@ -400,26 +266,74 @@ if (filter(schedule.df, date == Sys.Date() & party=="republican") %>% nrow > 0
 
 ```
 
+### Yesterday
 
-## Battleground States  {.tabset}
+```{r tour_yesterday}
+# See scripts
+#   `Election2016_ScheduleScrape.R`
+#   `Election2016_TourSchedule.R`
+#   for source.
+map.yesterday
+```
+
+### Last Three Days
+
+```{r tour_last3}
+# See scripts
+#   `Election2016_ScheduleScrape.R`
+#   `Election2016_TourSchedule.R`
+#   for source.
+map.last3days
+```
+
+### Last 7 Days
+
+```{r tour_last7}
+# See scripts
+#   `Election2016_ScheduleScrape.R`
+#   `Election2016_TourSchedule.R`
+#   for source.
+map.last7days
+```
+
+### Last 30 Days  
+```{r tour_last30}
+# See scripts
+#   `Election2016_ScheduleScrape.R`
+#   `Election2016_TourSchedule.R`
+#   for source.
+map.last30days
+```
+
+### Since July 31, 2016
+
+```{r tour_all}
+# See scripts
+#   `Election2016_ScheduleScrape.R`
+#   `Election2016_TourSchedule.R`
+#   for source.
+map.100days
+```
+
+## Battleground States  {.tabset .tabset-fade .tabset-pills}
 A [source](http://www.nytimes.com/2016/07/31/us/politics/donald-trump-presidential-race.html) within the Trump campaign designated four must-win states: Ohio, Pennsylvania, Florida, and North Carolina.
 
+<br>
+
 ### Florida
+
+**Florida Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
 ```{r FL_table}
 slug <- "2016-florida-presidential-general-election-trump-vs-clinton"
 
 source("Election2016_EstTable.R")
 
-# Cannot source `datatable()` from an R script.
-DT::datatable(data=est.today,
-              options=list(dom="t"),
-              caption = htmltools::tags$caption(
-                style = 'caption-side: bottom; text-align: left;',
-                htmltools::em("Source: HuffPost Pollster"))
-)
+candidate.DT
 ```
 
-#### Florida Polling Data {.tabset}
+<br>
+
+#### Florida Polling Data {.tabset .tabset-fade .tabset-pills}
 
 ##### Florida Polls
 
@@ -427,68 +341,32 @@ DT::datatable(data=est.today,
 source("Election2016_Polls.R")
 
 # Polling data
-plot_ly(data=all.polls.long, 
-        x=med_date, 
-        y=value, 
-        mode="markers", 
-        marker=list(color=choice_color),
-        hoverinfo="text",
-        text=hover_info,
-        color=choice) %>% 
-  #colors=c("red", "blue")
-  layout(title="Florida Polls", 
-         annotations=plot.labels,
-         shapes=list(vert.line),
-         xaxis=list(title="Date", tickangle=-45, rangeslider=list(type="date")),
-         yaxis=list(title="", ticksuffix="%"))
+polls.plotly
 ```
 
 ##### Florida Estimates
 ```{r FL_est}
 #source("Election2016_Est.R")
 # Overlay estimates with polling data
-plot_ly(data=est.daily.top2,
-        x=date,
-        y=value,
-        #line=list(color=choice_color),
-        mode="lines + markers + text",
-        color=choice,
-        colors=c("red", "blue"),
-        showlegend=FALSE) %>%
-  add_trace(data=all.polls.long, 
-            x=med_date, 
-            y=value, 
-            marker=list(color=choice_color),
-            mode="markers", 
-            hoverinfo="none",
-            color=choice 
-            #colors=c("red", "blue")
-  ) %>%
-  layout(title="Florida Polls and Average", 
-         annotations=plot.labels,
-         shapes=list(vert.line),
-         xaxis=list(title="Date", tickangle=-45, rangeslider=list(type="date")),
-         yaxis=list(title="", ticksuffix="%"))
+est.plotly
 
 ```
 
 
-### North Carolina
+### North Carolina  
+
+**North Carolina Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
 ```{r NC_table}
 slug <- "2016-north-carolina-president-trump-vs-clinton"
 
 source("Election2016_EstTable.R")
 
-# Cannot source `datatable()` from an R script.
-DT::datatable(data=est.today,
-              options=list(dom="t"),
-              caption = htmltools::tags$caption(
-                style = 'caption-side: bottom; text-align: left;',
-                htmltools::em("Source: HuffPost Pollster"))
-)
+candidate.DT
 ```
 
-#### North Carolina Polling Data {.tabset}
+<br>
+
+#### North Carolina Polling Data {.tabset .tabset-fade .tabset-pills}
 
 ##### North Carolina Polls
 
@@ -496,67 +374,30 @@ DT::datatable(data=est.today,
 source("Election2016_Polls.R")
 
 # Polling data
-plot_ly(data=all.polls.long, 
-        x=med_date, 
-        y=value, 
-        mode="markers", 
-        marker=list(color=choice_color),
-        hoverinfo="text",
-        text=hover_info,
-        color=choice) %>% 
-  #colors=c("red", "blue")
-  layout(title="North Carolina Polls", 
-         annotations=plot.labels,
-         shapes=list(vert.line),
-         xaxis=list(title="Date", tickangle=-45, rangeslider=list(type="date")),
-         yaxis=list(title="", ticksuffix="%"))
+polls.plotly
 ```
 
 ##### North Carolina Estimates
 ```{r NC_est}
 #source("Election2016_Est.R")
 # Overlay estimates with polling data
-plot_ly(data=est.daily.top2,
-        x=date,
-        y=value,
-        #line=list(color=choice_color),
-        mode="lines + markers + text",
-        color=choice,
-        colors=c("red", "blue"),
-        showlegend=FALSE) %>%
-  add_trace(data=all.polls.long, 
-            x=med_date, 
-            y=value, 
-            marker=list(color=choice_color),
-            mode="markers", 
-            hoverinfo="none",
-            color=choice 
-            #colors=c("red", "blue")
-  ) %>%
-  layout(title="North Carolina Polls and Average", 
-         annotations=plot.labels,
-         shapes=list(vert.line),
-         xaxis=list(title="Date", tickangle=-45, rangeslider=list(type="date")),
-         yaxis=list(title="", ticksuffix="%"))
-
+est.plotly
 ```
 
-### Ohio
+### Ohio  
+
+**Ohio Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
 ```{r OH_table}
 slug <- "2016-ohio-president-trump-vs-clinton"
 
 source("Election2016_EstTable.R")
 
-# Cannot source `datatable()` from an R script.
-DT::datatable(data=est.today,
-              options=list(dom="t"),
-              caption = htmltools::tags$caption(
-                style = 'caption-side: bottom; text-align: left;',
-                htmltools::em("Source: HuffPost Pollster"))
-)
+candidate.DT
 ```
 
-#### Ohio Polling Data {.tabset}
+<br>
+
+#### Ohio Polling Data {.tabset .tabset-fade .tabset-pills}
 
 ##### Ohio Polls
 
@@ -564,67 +405,31 @@ DT::datatable(data=est.today,
 source("Election2016_Polls.R")
 
 # Polling data
-plot_ly(data=all.polls.long, 
-        x=med_date, 
-        y=value, 
-        mode="markers", 
-        marker=list(color=choice_color),
-        hoverinfo="text",
-        text=hover_info,
-        color=choice) %>% 
-  #colors=c("red", "blue")
-  layout(title="Ohio Polls", 
-         annotations=plot.labels,
-         shapes=list(vert.line),
-         xaxis=list(title="Date", tickangle=-45, rangeslider=list(type="date")),
-         yaxis=list(title="", ticksuffix="%"))
+polls.plotly
 ```
 
 ##### Ohio Estimates
 ```{r OH_est}
 #source("Election2016_Est.R")
 # Overlay estimates with polling data
-plot_ly(data=est.daily.top2,
-        x=date,
-        y=value,
-        #line=list(color=choice_color),
-        mode="lines + markers + text",
-        color=choice,
-        colors=c("red", "blue"),
-        showlegend=FALSE) %>%
-  add_trace(data=all.polls.long, 
-            x=med_date, 
-            y=value, 
-            marker=list(color=choice_color),
-            mode="markers", 
-            hoverinfo="none",
-            color=choice 
-            #colors=c("red", "blue")
-  ) %>%
-  layout(title="Ohio Polls and Average", 
-         annotations=plot.labels,
-         shapes=list(vert.line),
-         xaxis=list(title="Date", tickangle=-45, rangeslider=list(type="date")),
-         yaxis=list(title="", ticksuffix="%"))
+est.plotly
 
 ```
 
-### Pennsylvania
+### Pennsylvania  
+
+**Pennsylvania Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
 ```{r PA_table}
 slug <- "2016-pennsylvania-president-trump-vs-clinton"
 
 source("Election2016_EstTable.R")
 
-# Cannot source `datatable()` from an R script.
-DT::datatable(data=est.today,
-              options=list(dom="t"),
-              caption = htmltools::tags$caption(
-                style = 'caption-side: bottom; text-align: left;',
-                htmltools::em("Source: HuffPost Pollster"))
-)
+candidate.DT
 ```
 
-#### Pennsylvania Polling Data {.tabset}
+<br>
+
+#### Pennsylvania Polling Data {.tabset .tabset-fade .tabset-pills}
 
 ##### Pennsylvania Polls
 
@@ -632,47 +437,13 @@ DT::datatable(data=est.today,
 source("Election2016_Polls.R")
 
 # Polling data
-plot_ly(data=all.polls.long, 
-        x=med_date, 
-        y=value, 
-        mode="markers", 
-        marker=list(color=choice_color),
-        hoverinfo="text",
-        text=hover_info,
-        color=choice) %>% 
-  #colors=c("red", "blue")
-  layout(title="Pennsylvania Polls", 
-         annotations=plot.labels,
-         shapes=list(vert.line),
-         xaxis=list(title="Date", tickangle=-45, rangeslider=list(type="date")),
-         yaxis=list(title="", ticksuffix="%"))
+polls.plotly
 ```
 
 ##### Pennsylvania Estimates
 ```{r PA_est}
 #source("Election2016_Est.R")
 # Overlay estimates with polling data
-plot_ly(data=est.daily.top2,
-        x=date,
-        y=value,
-        #line=list(color=choice_color),
-        mode="lines + markers + text",
-        color=choice,
-        colors=c("red", "blue"),
-        showlegend=FALSE) %>%
-  add_trace(data=all.polls.long, 
-            x=med_date, 
-            y=value, 
-            marker=list(color=choice_color),
-            mode="markers", 
-            hoverinfo="none",
-            color=choice 
-            #colors=c("red", "blue")
-  ) %>%
-  layout(title="Pennsylvania Polls and Average", 
-         annotations=plot.labels,
-         shapes=list(vert.line),
-         xaxis=list(title="Date", tickangle=-45, rangeslider=list(type="date")),
-         yaxis=list(title="", ticksuffix="%"))
+est.plotly
 
 ```
