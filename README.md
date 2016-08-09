@@ -2,4 +2,4 @@
 
 Some data visualization using data from PollstR package.
 
-Report published on [Rpubs](http://rpubs.com/c1temp22/201203)
+[Report](http://rpubs.com/c1temp22/201203) published on Rpubs.
