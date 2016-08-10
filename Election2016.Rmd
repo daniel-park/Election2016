@@ -1,5 +1,5 @@
 ---
-title: "2016 US Elections"
+title: "2016 US Presidential Elections"
 date: "`r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`"
 output: 
   html_document:
@@ -8,53 +8,44 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE, fig.width=8)
-setwd("~/Dropbox/DataScience/Projects/Election2016")
 ```
+
+<br>
 
 The data in this report (unless otherwise noted) comes from using the `pollstR` package.  It allows for direct access to the *HuffPost Pollster* API using `R`.  The code appears on [Github](https://github.com/daniel-park/Election2016).
 
+<br>
 
-```{r init}
-library(pollstR)
-
-# Available charts, list of 2
-#   List 1: `$charts` shows available charts
-#   List 2: `$estimates` shows today's estimates for candidates, 
-#           approval ratings, etc.
-charts <- pollster_charts(page=1) # is this necessary?
-# Result:
-# View(charts$charts)  # listing by name
-
-
-```
-
-###National Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`
+##National Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`
 ```{r US_table}
+setwd("~/Dropbox/DataScience/Projects/Election2016")
+
 library(pollstR)
+
 # Chart name for various national polls.
 slug <- "2016-general-election-trump-vs-clinton-vs-johnson"
 
-
-
 source("Election2016_EstTable.R")
-
 
 candidate.DT
 ```
+
+<br>
 
 ## National Polling Data {.tabset .tabset-fade .tabset-pills}
 
 ### National Polls  
 
-National support for the two main US presidential candidates according to polls conducted by various polling organizations.
+National support for the two main US presidential candidates according to various polling organizations.
 ```{r US_polls}
 source("Election2016_Polls.R")
+
 polls.plotly
 ```
 
 ### National Estimates  
 
-The line represents *HuffPost Pollster's* estimate for overall support.
+The line represents *HuffPost Pollster's* estimate for overall support based on polling data.
 
 ```{r US_est}
 # Comes from `Election2016_Polls.R` script.
@@ -117,23 +108,23 @@ plot_ly(data=est.daily.top2,
 
 ```
 
+<br>
+
 ## Electoral Map  
 
 This is the current electoral map according to estimates by *HuffPost Pollster*.  Estimates are made for states with sufficient polling data.
 
-```{r ElectoralMap}
-
+```{r ElectoralMap, eval=FALSE}
 source("Election2016_ElectoralMap.R")
 
 election.map
 ```
 
-
-
+<br>
 
 ## Campaign Stops {.tabset .tabset-fade .tabset-pills}
 
-The following maps track campaign stops. The data begins on July 31, 2016 (100 days until the Election Day).  
+The records begin on July 31, 2016 (100 days until Election Day).  The information is being collected daily from [here](https://www.donaldjtrump.com/schedule) and [here](https://www.willhillarywin.com/hillary-clintons-events/).
 
 ```{r echo=FALSE, eval=FALSE}
 # doubt I will use
@@ -173,10 +164,20 @@ leaflet() %>%
 ### Today
 
 ```{r tour_today}
-source("Election2016_ScheduleScrape.R")
+#source("Election2016_ScheduleScrape.R")
+schedule.df <- read.csv("Election2016_csv/Election2016_TourScheduleAug10.csv") # remove Thur
+
 source("Election2016_TourSchedule.R")
 
 map.today
+
+schedule.state <- "US"
+schedule.date.begin <- Sys.Date()
+schedule.date.end <- Sys.Date()
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
 ```
 
 
@@ -274,6 +275,14 @@ if (filter(schedule.df, date == Sys.Date() & party=="republican") %>% nrow > 0
 #   `Election2016_TourSchedule.R`
 #   for source.
 map.yesterday
+
+schedule.state <- "US"
+schedule.date.begin <- Sys.Date() - 1
+schedule.date.end   <- Sys.Date() - 1
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
 ```
 
 ### Last Three Days
@@ -284,6 +293,14 @@ map.yesterday
 #   `Election2016_TourSchedule.R`
 #   for source.
 map.last3days
+
+schedule.state <- "US"
+schedule.date.begin <- Sys.Date() - 2
+schedule.date.end   <- Sys.Date()
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
 ```
 
 ### Last 7 Days
@@ -294,6 +311,14 @@ map.last3days
 #   `Election2016_TourSchedule.R`
 #   for source.
 map.last7days
+
+schedule.state <- "US"
+schedule.date.begin <- Sys.Date() - 2
+schedule.date.end   <- Sys.Date()
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
 ```
 
 ### Last 30 Days  
@@ -303,6 +328,14 @@ map.last7days
 #   `Election2016_TourSchedule.R`
 #   for source.
 map.last30days
+
+schedule.state <- "US"
+schedule.date.begin <- Sys.Date() - 29
+schedule.date.end   <- Sys.Date()
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
 ```
 
 ### Since July 31, 2016
@@ -313,10 +346,21 @@ map.last30days
 #   `Election2016_TourSchedule.R`
 #   for source.
 map.100days
+
+schedule.state <- "US"
+schedule.date.begin <- as.Date("2016-07-31")
+schedule.date.end   <- Sys.Date()
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
 ```
 
+<br>
+<br>
+
 ## Battleground States  {.tabset .tabset-fade .tabset-pills}
-A [source](http://www.nytimes.com/2016/07/31/us/politics/donald-trump-presidential-race.html) within the Trump campaign designated four must-win states: Ohio, Pennsylvania, Florida, and North Carolina.
+A [source](http://www.nytimes.com/2016/07/31/us/politics/donald-trump-presidential-race.html) within the Trump campaign identified four must-win states: Ohio, Pennsylvania, Florida, and North Carolina.
 
 <br>
 
@@ -332,6 +376,9 @@ candidate.DT
 ```
 
 <br>
+
+
+
 
 #### Florida Polling Data {.tabset .tabset-fade .tabset-pills}
 
@@ -349,9 +396,29 @@ polls.plotly
 #source("Election2016_Est.R")
 # Overlay estimates with polling data
 est.plotly
-
 ```
 
+#### Campaign Visits to Florida {.tabset .tabset-fade .tabset-pills}  
+
+##### Democrats
+```{r FL_trips_D}
+party.name <- "Democratic"
+schedule.state <- "FL"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+##### Republicans
+```{r FL_trips_R}
+party.name <- "Republican"
+schedule.state <- "FL"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
 
 ### North Carolina  
 
@@ -384,6 +451,28 @@ polls.plotly
 est.plotly
 ```
 
+#### Campaign Visits to North Carolina {.tabset .tabset-fade .tabset-pills}  
+
+##### Democrats
+```{r NC_trips_D}
+party.name <- "Democratic"
+schedule.state <- "NC"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+##### Republicans
+```{r NC_trips_R}
+party.name <- "Republican"
+schedule.state <- "NC"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
 ### Ohio  
 
 **Ohio Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
@@ -413,7 +502,28 @@ polls.plotly
 #source("Election2016_Est.R")
 # Overlay estimates with polling data
 est.plotly
+```
 
+#### Campaign Visits to Ohio {.tabset .tabset-fade .tabset-pills}  
+
+##### Democrats
+```{r OH_trips_D}
+party.name <- "Democratic"
+schedule.state <- "OH"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+##### Republicans
+```{r OH_trips_R}
+party.name <- "Republican"
+schedule.state <- "OH"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
 ```
 
 ### Pennsylvania  
@@ -446,4 +556,26 @@ polls.plotly
 # Overlay estimates with polling data
 est.plotly
 
+```
+
+#### Campaign Visits to Pennsylvania {.tabset .tabset-fade .tabset-pills}  
+
+##### Democrats
+```{r PA_trips_D}
+party.name <- "Democratic"
+schedule.state <- "PA"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+##### Republicans
+```{r PA_trips_R}
+party.name <- "Republican"
+schedule.state <- "PA"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
 ```
