@@ -4,6 +4,9 @@ date: "`r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`"
 output: 
   html_document:
     code_folding: hide
+    toc: true
+    toc_float:
+      collapsed: true    
 ---
 
 ```{r setup, include=FALSE}
@@ -16,7 +19,8 @@ The data in this report (unless otherwise noted) comes from using the `pollstR` 
 
 <br>
 
-##National Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`
+## National Polling Estimate  
+The current estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`.  
 ```{r US_table}
 setwd("~/Dropbox/DataScience/Projects/Election2016")
 
@@ -114,7 +118,7 @@ plot_ly(data=est.daily.top2,
 
 This is the current electoral map according to estimates by *HuffPost Pollster*.  Estimates are made for states with sufficient polling data.
 
-```{r ElectoralMap, eval=FALSE}
+```{r ElectoralMap}
 source("Election2016_ElectoralMap.R")
 
 election.map
@@ -164,8 +168,8 @@ leaflet() %>%
 ### Today
 
 ```{r tour_today}
-#source("Election2016_ScheduleScrape.R")
-schedule.df <- read.csv("Election2016_csv/Election2016_TourScheduleAug10.csv") # remove Thur
+source("Election2016_ScheduleScrape.R")
+#schedule.df <- read.csv("Election2016_csv/Election2016_TourScheduleAug10.csv") # remove Thur
 
 source("Election2016_TourSchedule.R")
 
@@ -313,7 +317,7 @@ schedule.DT
 map.last7days
 
 schedule.state <- "US"
-schedule.date.begin <- Sys.Date() - 2
+schedule.date.begin <- Sys.Date() - 6
 schedule.date.end   <- Sys.Date()
 
 source("Election2016_ScheduleTable.R")
@@ -360,13 +364,16 @@ schedule.DT
 <br>
 
 ## Battleground States  {.tabset .tabset-fade .tabset-pills}
+
+There are roughly eleven swing states.
+
 A [source](http://www.nytimes.com/2016/07/31/us/politics/donald-trump-presidential-race.html) within the Trump campaign identified four must-win states: Ohio, Pennsylvania, Florida, and North Carolina.
 
 <br>
 
 ### Florida
 
-**Florida Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+**Present Polling Estimate for Florida on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
 ```{r FL_table}
 slug <- "2016-florida-presidential-general-election-trump-vs-clinton"
 
@@ -422,7 +429,7 @@ schedule.DT
 
 ### North Carolina  
 
-**North Carolina Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+**Present Polling Estimate for North Carolina on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
 ```{r NC_table}
 slug <- "2016-north-carolina-president-trump-vs-clinton"
 
@@ -475,7 +482,7 @@ schedule.DT
 
 ### Ohio  
 
-**Ohio Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+**Present Polling Estimate for Ohio on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
 ```{r OH_table}
 slug <- "2016-ohio-president-trump-vs-clinton"
 
@@ -528,7 +535,9 @@ schedule.DT
 
 ### Pennsylvania  
 
-**Pennsylvania Polling Estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+While races are typically close in Pennsylvania, Democrats have won this state in the past six presidential elections.
+
+**Present Polling Estimate for Pennsylvania on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
 ```{r PA_table}
 slug <- "2016-pennsylvania-president-trump-vs-clinton"
 
@@ -579,3 +588,379 @@ source("Election2016_ScheduleTable.R")
 
 schedule.DT
 ```
+
+### Other {.tabset .tabset-fade .tabset-pills}
+
+#### Colorado
+
+**Present Polling Estimate for Colorado on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+```{r CO_table}
+slug <- "2016-colorado-president-trump-vs-clinton"
+
+source("Election2016_EstTable.R")
+
+candidate.DT
+```
+
+<br>
+
+##### Colorado Polling Data {.tabset .tabset-fade .tabset-pills}
+
+###### Colorado Polls
+
+```{r CO_polls}
+source("Election2016_Polls.R")
+
+# Polling data
+polls.plotly
+```
+
+###### Colorado Estimates
+```{r CO_est}
+#source("Election2016_Est.R")
+# Overlay estimates with polling data
+est.plotly
+```
+
+##### Campaign Visits to Colorado {.tabset .tabset-fade .tabset-pills}  
+
+###### Democrats
+```{r CO_trips_D}
+party.name <- "Democratic"
+schedule.state <- "CO"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+###### Republicans
+```{r CO_trips_R}
+party.name <- "Republican"
+schedule.state <- "CO"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+#### Iowa
+
+**Present Polling Estimate for Iowa on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+```{r IA_table}
+slug <- "2016-iowa-president-trump-vs-clinton"
+
+source("Election2016_EstTable.R")
+
+candidate.DT
+```
+
+<br>
+
+##### Iowa Polling Data {.tabset .tabset-fade .tabset-pills}
+
+###### Iowa Polls
+
+```{r IA_polls}
+source("Election2016_Polls.R")
+
+# Polling data
+polls.plotly
+```
+
+###### Iowa Estimates
+```{r IA_est}
+#source("Election2016_Est.R")
+# Overlay estimates with polling data
+est.plotly
+```
+
+##### Campaign Visits to Iowa {.tabset .tabset-fade .tabset-pills}  
+
+###### Democrats
+```{r IA_trips_D}
+party.name <- "Democratic"
+schedule.state <- "IA"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+###### Republicans
+```{r IA_trips_R}
+party.name <- "Republican"
+schedule.state <- "IA"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+#### Michigan
+
+**Present Polling Estimate for Michigan on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+```{r MI_table}
+slug <- "2016-michigan-president-trump-vs-clinton"
+
+source("Election2016_EstTable.R")
+
+candidate.DT
+```
+
+<br>
+
+##### Michigan Polling Data {.tabset .tabset-fade .tabset-pills}
+
+###### Michigan Polls
+
+```{r MI_polls}
+source("Election2016_Polls.R")
+
+# Polling data
+polls.plotly
+```
+
+###### Michigan Estimates
+```{r MI_est}
+#source("Election2016_Est.R")
+# Overlay estimates with polling data
+est.plotly
+```
+
+##### Campaign Visits to Michigan {.tabset .tabset-fade .tabset-pills}  
+
+###### Democrats
+```{r MI_trips_D}
+party.name <- "Democratic"
+schedule.state <- "MI"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+###### Republicans
+```{r MI_trips_R}
+party.name <- "Republican"
+schedule.state <- "MI"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+#### Nevada
+
+**Present Polling Estimate for Nevada on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+```{r NV_table}
+slug <- "2016-nevada-president-trump-vs-clinton"
+
+source("Election2016_EstTable.R")
+
+candidate.DT
+```
+
+<br>
+
+##### Nevada Polling Data {.tabset .tabset-fade .tabset-pills}
+
+###### Nevada Polls
+
+```{r NV_polls}
+source("Election2016_Polls.R")
+
+# Polling data
+polls.plotly
+```
+
+###### Nevada Estimates
+```{r NV_est}
+#source("Election2016_Est.R")
+# Overlay estimates with polling data
+est.plotly
+```
+
+##### Campaign Visits to Nevada {.tabset .tabset-fade .tabset-pills}  
+
+###### Democrats
+```{r NV_trips_D}
+party.name <- "Democratic"
+schedule.state <- "NV"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+###### Republicans
+```{r NV_trips_R}
+party.name <- "Republican"
+schedule.state <- "NV"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+#### New Hampshire
+
+**Present Polling Estimate for New Hampshire on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+```{r NH_table}
+slug <- "2016-new-hampshire-president-trump-vs-clinton"
+
+source("Election2016_EstTable.R")
+
+candidate.DT
+```
+
+<br>
+
+##### New Hampshire Polling Data {.tabset .tabset-fade .tabset-pills}
+
+###### New Hampshire Polls
+
+```{r NH_polls}
+source("Election2016_Polls.R")
+
+# Polling data
+polls.plotly
+```
+
+###### New Hampshire Estimates
+```{r NH_est}
+#source("Election2016_Est.R")
+# Overlay estimates with polling data
+est.plotly
+```
+
+##### Campaign Visits to New Hampshire {.tabset .tabset-fade .tabset-pills}  
+
+###### Democrats
+```{r NH_trips_D}
+party.name <- "Democratic"
+schedule.state <- "NH"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+###### Republicans
+```{r NH_trips_R}
+party.name <- "Republican"
+schedule.state <- "NH"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+#### Virginia
+
+**Present Polling Estimate for Virginia on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+```{r VA_table}
+slug <- "2016-virginia-president-trump-vs-clinton"
+
+source("Election2016_EstTable.R")
+
+candidate.DT
+```
+
+<br>
+
+##### Virginia Polling Data {.tabset .tabset-fade .tabset-pills}
+
+###### Virginia Polls
+
+```{r VA_polls}
+source("Election2016_Polls.R")
+
+# Polling data
+polls.plotly
+```
+
+###### Virginia Estimates
+```{r VA_est}
+#source("Election2016_Est.R")
+# Overlay estimates with polling data
+est.plotly
+```
+
+##### Campaign Visits to Virginia {.tabset .tabset-fade .tabset-pills}  
+
+###### Democrats
+```{r VA_trips_D}
+party.name <- "Democratic"
+schedule.state <- "VA"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+###### Republicans
+```{r VA_trips_R}
+party.name <- "Republican"
+schedule.state <- "VA"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+#### Wisconsin
+
+**Present Polling Estimate for Wisconsin on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
+```{r WI_table}
+slug <- "2016-wisconsin-president-trump-vs-clinton"
+
+source("Election2016_EstTable.R")
+
+candidate.DT
+```
+
+<br>
+
+##### Wisconsin Polling Data {.tabset .tabset-fade .tabset-pills}
+
+###### Wisconsin Polls
+
+```{r WI_polls}
+source("Election2016_Polls.R")
+
+# Polling data
+polls.plotly
+```
+
+###### Wisconsin Estimates
+```{r WI_est}
+#source("Election2016_Est.R")
+# Overlay estimates with polling data
+est.plotly
+```
+
+##### Campaign Visits to Wisconsin {.tabset .tabset-fade .tabset-pills}  
+
+###### Democrats
+```{r WI_trips_D}
+party.name <- "Democratic"
+schedule.state <- "WI"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+###### Republicans
+```{r WI_trips_R}
+party.name <- "Republican"
+schedule.state <- "WI"
+
+source("Election2016_ScheduleTable.R")
+
+schedule.DT
+```
+
+ <br>
+ <br>
