@@ -11,13 +11,19 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE, fig.width=8)
+library(plyr)  # `plyr` must be loaded before `dplyr`
+library(dplyr)
+library(lubridate)
 ```
+
+#### Days until Election Day: `r (as.Date("2016-11-08") - Sys.Date()) %>% as.numeric`
 
 <br>
 
 The data in this report (unless otherwise noted) comes from using the `pollstR` package.  It allows for direct access to the *HuffPost Pollster* API using `R`.  The code appears on [Github](https://github.com/daniel-park/Election2016).
 
 <br>
+
 
 ## National Polling Estimate  
 The current estimate on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`.  
@@ -63,7 +69,7 @@ est.plotly
 # 1b is different from 1a in the text placement
 marker1b <- list(x="2016-11-15",
                 y=midpoint,
-                text="Election Day <br> November 11",
+                text="Election Day <br> November 08",
                 font=list(size=10),
                 showarrow=FALSE)
 
@@ -130,48 +136,13 @@ election.map
 
 The records begin on July 31, 2016 (100 days until Election Day).  The information is being collected daily from [here](https://www.donaldjtrump.com/schedule) and [here](https://www.willhillarywin.com/hillary-clintons-events/).
 
-```{r echo=FALSE, eval=FALSE}
-# doubt I will use
-
-# Schedule MAP
-
-
-leaflet() %>%
-  addTiles() %>%
-  addMarkers(data=filter(schedule.df, clinton==TRUE), 
-             lng=~longitude, lat=~latitude,
-             popup=~popup_label,
-             group="Clinton (D)",
-             icon=dem.icon) %>%
-  addMarkers(data=filter(schedule.df, kaine==TRUE), 
-             lng=~longitude, lat=~latitude,
-             popup=~popup_label,
-             group="Kaine (D)",
-             icon=dem.icon) %>%
-  addMarkers(data=filter(schedule.df, trump==TRUE), 
-             lng=~longitude, lat=~latitude,
-             popup=~popup_label,
-             group="Trump (R)",
-             icon=repub.icon) %>%  
-  addMarkers(data=filter(schedule.df, pence==TRUE), 
-             lng=~longitude, lat=~latitude,
-             popup=~popup_label,
-             group="Pence (R)",
-             icon=repub.icon) %>%
-  addLayersControl(overlayGroups=c("Clinton (D)", "Kaine (D)", 
-                                   "Trump (R)", "Pence (R)"),
-                   options = layersControlOptions(collapsed = FALSE)) 
-
-
-```
 
 ### Today
 
 ```{r tour_today}
 source("Election2016_ScheduleScrape.R")
-#schedule.df <- read.csv("Election2016_csv/Election2016_TourScheduleAug10.csv") # remove Thur
 
-source("Election2016_TourSchedule.R")
+source("Election2016_TourMap.R")
 
 map.today
 
@@ -187,96 +158,12 @@ schedule.DT
 
 
 
-```{r echo=FALSE, eval=FALSE}
-# probably won't use
-
-# Partitioning campaign stops by day, week, and all
-# Some days, no candidate makes a campaign stop
-# In that case, feeding plotly an empty data set causes an error
-# Therefore, you must create if-else conditions to prevent this from happening.
-
-# `map.not.today` includes all stops except for today.
-map.not.today <- leaflet() %>%
-  addTiles() %>% 
-  addMarkers(data=filter(schedule.df, party=="republican"), 
-             lng=~longitude, lat=~latitude,
-             popup=~popup_label,
-             icon=repub.icon,
-             group="All") %>% 
-  addMarkers(data=filter(schedule.df, party=="democrat"), 
-             lng=~longitude, lat=~latitude,
-             popup=~popup_label,
-             icon=dem.icon,
-             group="All") %>%
-  addMarkers(data=filter(schedule.df, 
-                         date <= Sys.Date() & 
-                           date > Sys.Date() - 7  & 
-                           party=="republican"), 
-             lng=~longitude, lat=~latitude,
-             popup=~popup_label,
-             icon=repub.icon,
-             group="Last 7 Days") %>%
-  addMarkers(data=filter(schedule.df, 
-                         date <= Sys.Date() & 
-                           date > Sys.Date() - 7  & 
-                           party=="democrat"), 
-             lng=~longitude, lat=~latitude,
-             popup=~popup_label,
-             icon=dem.icon,
-             group="Last 7 Days") %>%
-  addLayersControl(baseGroups=c("Today", "Last 7 Days", "All"), 
-                   options = layersControlOptions(collapsed = FALSE))
-
-
-
-
-if (filter(schedule.df, date == Sys.Date() & party=="republican") %>% nrow > 0
-    &
-    filter(schedule.df, date == Sys.Date() & party=="democrat") %>% nrow > 0
-    ) {
-  map.not.today %>%
-    addMarkers(data=filter(schedule.df, date==Sys.Date() & party=="republican"),
-               lng=~longitude, lat=~latitude,
-               popup=~popup_label,
-               icon=repub.icon,
-               group="Today") %>%
-    addMarkers(data=filter(schedule.df, date==Sys.Date() & party=="democrat"), 
-             lng=~longitude, lat=~latitude,
-             popup=~popup_label,
-             icon=dem.icon,
-             group="Today")
-  } else if (filter(schedule.df, date == Sys.Date() & 
-                    party=="republican") %>%
-    nrow > 0) {
-      map.not.today %>%
-    addMarkers(data=filter(schedule.df, date==Sys.Date() & party=="republican"),
-               lng=~longitude, lat=~latitude,
-               popup=~popup_label,
-               icon=repub.icon,
-               group="Today")
-    } else if (filter(schedule.df, date == Sys.Date() & 
-           party=="democrat") %>%
-    nrow > 0) {
-      map.not.today %>%
-        addMarkers(data=filter(schedule.df, date==Sys.Date() & party=="democrat"),
-               lng=~longitude, lat=~latitude,
-               popup=~popup_label,
-               icon=dem.icon,
-               group="Today")
-    } else {
-      map.not.today
-    }
-
-
-
-```
-
 ### Yesterday
 
 ```{r tour_yesterday}
 # See scripts
 #   `Election2016_ScheduleScrape.R`
-#   `Election2016_TourSchedule.R`
+#   `Election2016_TourMap.R`
 #   for source.
 map.yesterday
 
@@ -294,7 +181,7 @@ schedule.DT
 ```{r tour_last3}
 # See scripts
 #   `Election2016_ScheduleScrape.R`
-#   `Election2016_TourSchedule.R`
+#   `Election2016_TourMap.R`
 #   for source.
 map.last3days
 
@@ -312,7 +199,7 @@ schedule.DT
 ```{r tour_last7}
 # See scripts
 #   `Election2016_ScheduleScrape.R`
-#   `Election2016_TourSchedule.R`
+#   `Election2016_TourMap.R`
 #   for source.
 map.last7days
 
@@ -329,7 +216,7 @@ schedule.DT
 ```{r tour_last30}
 # See scripts
 #   `Election2016_ScheduleScrape.R`
-#   `Election2016_TourSchedule.R`
+#   `Election2016_TourMap.R`
 #   for source.
 map.last30days
 
@@ -347,7 +234,7 @@ schedule.DT
 ```{r tour_all}
 # See scripts
 #   `Election2016_ScheduleScrape.R`
-#   `Election2016_TourSchedule.R`
+#   `Election2016_TourMap.R`
 #   for source.
 map.100days
 
@@ -405,11 +292,11 @@ polls.plotly
 est.plotly
 ```
 
-#### Campaign Visits to Florida {.tabset .tabset-fade .tabset-pills}  
+<br>
 
-##### Democrats
-```{r FL_trips_D}
-party.name <- "Democratic"
+#### Campaign Visits to Florida  
+
+```{r FL_trips}
 schedule.state <- "FL"
 
 source("Election2016_ScheduleTable.R")
@@ -417,15 +304,6 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-##### Republicans
-```{r FL_trips_R}
-party.name <- "Republican"
-schedule.state <- "FL"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
 ### North Carolina  
 
@@ -458,11 +336,12 @@ polls.plotly
 est.plotly
 ```
 
-#### Campaign Visits to North Carolina {.tabset .tabset-fade .tabset-pills}  
+<br>
+
+#### Campaign Visits to North Carolina  
 
 ##### Democrats
-```{r NC_trips_D}
-party.name <- "Democratic"
+```{r NC_trips}
 schedule.state <- "NC"
 
 source("Election2016_ScheduleTable.R")
@@ -470,15 +349,6 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-##### Republicans
-```{r NC_trips_R}
-party.name <- "Republican"
-schedule.state <- "NC"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
 ### Ohio  
 
@@ -511,10 +381,11 @@ polls.plotly
 est.plotly
 ```
 
-#### Campaign Visits to Ohio {.tabset .tabset-fade .tabset-pills}  
+<br>
 
-##### Democrats
-```{r OH_trips_D}
+#### Campaign Visits to Ohio  
+
+```{r OH_trips}
 party.name <- "Democratic"
 schedule.state <- "OH"
 
@@ -523,19 +394,10 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-##### Republicans
-```{r OH_trips_R}
-party.name <- "Republican"
-schedule.state <- "OH"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
 ### Pennsylvania  
 
-While races are typically close in Pennsylvania, Democrats have won this state in the past six presidential elections.
+While races are typically close in Pennsylvania, Democrats have won this state in the past six presidential elections.  The last time that Republicans won this state was in 1988.
 
 **Present Polling Estimate for Pennsylvania on `r paste0(format(Sys.Date(), format='%B %d'), ', 2016')`**
 ```{r PA_table}
@@ -549,6 +411,7 @@ candidate.DT
 <br>
 
 #### Pennsylvania Polling Data {.tabset .tabset-fade .tabset-pills}
+
 
 ##### Pennsylvania Polls
 
@@ -567,11 +430,11 @@ est.plotly
 
 ```
 
+<br>
+
 #### Campaign Visits to Pennsylvania {.tabset .tabset-fade .tabset-pills}  
 
-##### Democrats
-```{r PA_trips_D}
-party.name <- "Democratic"
+```{r PA_trips}
 schedule.state <- "PA"
 
 source("Election2016_ScheduleTable.R")
@@ -579,15 +442,6 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-##### Republicans
-```{r PA_trips_R}
-party.name <- "Republican"
-schedule.state <- "PA"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
 ### Other {.tabset .tabset-fade .tabset-pills}
 
@@ -622,11 +476,11 @@ polls.plotly
 est.plotly
 ```
 
-##### Campaign Visits to Colorado {.tabset .tabset-fade .tabset-pills}  
+<br>
 
-###### Democrats
-```{r CO_trips_D}
-party.name <- "Democratic"
+##### Campaign Visits to Colorado    
+
+```{r CO_trips}
 schedule.state <- "CO"
 
 source("Election2016_ScheduleTable.R")
@@ -634,15 +488,6 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-###### Republicans
-```{r CO_trips_R}
-party.name <- "Republican"
-schedule.state <- "CO"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
 #### Iowa
 
@@ -675,11 +520,11 @@ polls.plotly
 est.plotly
 ```
 
-##### Campaign Visits to Iowa {.tabset .tabset-fade .tabset-pills}  
+<br>
 
-###### Democrats
-```{r IA_trips_D}
-party.name <- "Democratic"
+##### Campaign Visits to Iowa  
+
+```{r IA_trips}
 schedule.state <- "IA"
 
 source("Election2016_ScheduleTable.R")
@@ -687,15 +532,6 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-###### Republicans
-```{r IA_trips_R}
-party.name <- "Republican"
-schedule.state <- "IA"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
 #### Michigan
 
@@ -728,11 +564,11 @@ polls.plotly
 est.plotly
 ```
 
-##### Campaign Visits to Michigan {.tabset .tabset-fade .tabset-pills}  
+<br>
 
-###### Democrats
-```{r MI_trips_D}
-party.name <- "Democratic"
+##### Campaign Visits to Michigan  
+
+```{r MI_trips}
 schedule.state <- "MI"
 
 source("Election2016_ScheduleTable.R")
@@ -740,15 +576,6 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-###### Republicans
-```{r MI_trips_R}
-party.name <- "Republican"
-schedule.state <- "MI"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
 #### Nevada
 
@@ -781,11 +608,11 @@ polls.plotly
 est.plotly
 ```
 
-##### Campaign Visits to Nevada {.tabset .tabset-fade .tabset-pills}  
+<br>
 
-###### Democrats
-```{r NV_trips_D}
-party.name <- "Democratic"
+##### Campaign Visits to Nevada  
+
+```{r NV_trips}
 schedule.state <- "NV"
 
 source("Election2016_ScheduleTable.R")
@@ -793,15 +620,6 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-###### Republicans
-```{r NV_trips_R}
-party.name <- "Republican"
-schedule.state <- "NV"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
 #### New Hampshire
 
@@ -834,11 +652,11 @@ polls.plotly
 est.plotly
 ```
 
-##### Campaign Visits to New Hampshire {.tabset .tabset-fade .tabset-pills}  
+<br>
 
-###### Democrats
-```{r NH_trips_D}
-party.name <- "Democratic"
+##### Campaign Visits to New Hampshire 
+
+```{r NH_trips}
 schedule.state <- "NH"
 
 source("Election2016_ScheduleTable.R")
@@ -846,15 +664,6 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-###### Republicans
-```{r NH_trips_R}
-party.name <- "Republican"
-schedule.state <- "NH"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
 #### Virginia
 
@@ -887,11 +696,11 @@ polls.plotly
 est.plotly
 ```
 
-##### Campaign Visits to Virginia {.tabset .tabset-fade .tabset-pills}  
+<br>
 
-###### Democrats
-```{r VA_trips_D}
-party.name <- "Democratic"
+##### Campaign Visits to Virginia 
+
+```{r VA_trips}
 schedule.state <- "VA"
 
 source("Election2016_ScheduleTable.R")
@@ -899,15 +708,6 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-###### Republicans
-```{r VA_trips_R}
-party.name <- "Republican"
-schedule.state <- "VA"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
 #### Wisconsin
 
@@ -940,11 +740,11 @@ polls.plotly
 est.plotly
 ```
 
-##### Campaign Visits to Wisconsin {.tabset .tabset-fade .tabset-pills}  
+<br>
+ 
+##### Campaign Visits to Wisconsin
 
-###### Democrats
-```{r WI_trips_D}
-party.name <- "Democratic"
+```{r WI_trips}
 schedule.state <- "WI"
 
 source("Election2016_ScheduleTable.R")
@@ -952,15 +752,6 @@ source("Election2016_ScheduleTable.R")
 schedule.DT
 ```
 
-###### Republicans
-```{r WI_trips_R}
-party.name <- "Republican"
-schedule.state <- "WI"
-
-source("Election2016_ScheduleTable.R")
-
-schedule.DT
-```
 
  <br>
  <br>
